@@ -2,22 +2,32 @@ const express = require('express');
 const postRoutes = require('./routes/postRoutes');
 const { resetData } = require('./data/postStore');
 const controller = require('./controllers/postController');
+const http = require('./utils/http');
 
 function createApp() {
   const app = express();
   app.use(express.json());
 
+  // Public resource-oriented routes
   app.use('/', postRoutes);
-  app.get('/explode', controller.explode);
 
-  // TODO:
-  // - make public contract resource-oriented
-  // - standardise success envelope
-  // - standardise error envelope
-  // - add pagination metadata on list route
-  // - cap limit server-side (default limit = 2 for exercise)
-  // - stop exposing old verb routes as public contract
-  // - expose safe internal failure route for testing/demo
+  // Safe internal-failure route for demo and testing
+  app.get('/explode', controller.explode);
+  app.get('/test-error', controller.explode);
+
+  // Handle unknown routes with consistent error envelope
+  app.use((req, res) => {
+    return http.sendError(res, 404, 'NOT_FOUND', 'Route not found');
+  });
+
+  // Centralised error handling middleware
+  app.use((err, req, res, next) => {
+    if (res.headersSent) {
+      return next(err);
+    }
+    console.error('Unhandled server error:', err.message);
+    return http.sendError(res, err.statusCode || 500, err.code || 'INTERNAL_ERROR', 'Something went wrong');
+  });
 
   return app;
 }

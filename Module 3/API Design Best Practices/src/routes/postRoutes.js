@@ -3,9 +3,11 @@ const controller = require('../controllers/postController');
 
 const router = express.Router();
 
-router.get('/getPosts', controller.listPosts);
-router.get('/getPost/:id', controller.getPost);
-router.post('/createPost', controller.createPost);
-router.post('/likePost/:id', controller.likePost);
+// Resource-oriented noun-based routes
+router.get('/posts', controller.listPosts);
+router.get('/posts/:id', controller.getPost);
+router.post('/posts', controller.createPost);
+router.post('/posts/:id/likes', controller.likePost);
+router.post('/posts/:id/like', controller.likePost);
 
 module.exports = router;
